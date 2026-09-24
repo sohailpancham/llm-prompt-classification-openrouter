@@ -19,9 +19,9 @@ client = OpenAI(
 
 # Three free models selected from OpenRouter
 MODELS = [
-    "qwen/qwen3.8-27b:free",
-    "z-ai/glm-5.2:free",
-    "inclusionai/ling-3.0-flash-sante:free"
+    "google/gemini-2.5-flash-lite",
+    "openai/gpt-4.1-nano",
+    "mistralai/mistral-small-3.2-24b-instruct"
 ]
 
 SYSTEM_PROMPT = """Classify the user's prompt into exactly one category:
@@ -88,7 +88,7 @@ for model in MODELS:
                         "content": prompt
                     }
                 ],
-                max_tokens=20
+                max_tokens=10
             )
 
             raw_answer = response.choices[0].message.content or ""

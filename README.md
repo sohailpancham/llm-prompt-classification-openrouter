@@ -14,17 +14,15 @@ A total of 15 prompts were created manually, with 5 prompts for each category. T
 
 ## Models Used
 
-The following free OpenRouter models were selected:
+The final experiment used the following three OpenRouter models:
 
-1. `qwen/qwen3.8-27b:free`
-2. `z-ai/glm-5.2:free`
-3. `inclusionai/ling-3.0-flash-sante:free`
+1. `google/gemini-2.5-flash-lite`
+2. `openai/gpt-4.1-nano`
+3. `mistralai/mistral-small-3.2-24b-instruct`
 
-The available free models were discovered using the OpenRouter `/api/v1/models` endpoint by filtering model IDs ending with `:free`.
+Initially, free OpenRouter models were tested. However, some free endpoints were affected by rate limits, provider restrictions, or unusable responses. Since API credit was available, the final experiment used low-cost working models so that complete classification results could be collected.
 
 ## Prompt Categories
-
-The dataset contains:
 
 | Category | Number of Prompts |
 |---|---:|
@@ -37,7 +35,7 @@ The prompts and their ground-truth labels are stored in `prompts.json`.
 
 ## System Prompt
 
-The following instruction was given to the models:
+The following instruction was given to each model:
 
 > Classify the user's prompt into exactly one category: simple, coding, or reasoning. Reply with only the category word.
 
@@ -46,57 +44,131 @@ The following instruction was given to the models:
 The Python program:
 
 1. Loads the 15 prompts from `prompts.json`.
-2. Sends each prompt to three free OpenRouter models.
+2. Sends every prompt to each of the three models.
 3. Measures the latency of each API request.
-4. Records token usage when available.
+4. Records prompt, completion, and total token usage.
 5. Normalizes model responses into `simple`, `coding`, or `reasoning`.
-6. Compares the prediction with the ground-truth label.
-7. Handles API errors without stopping the complete experiment.
-8. Adds a delay between requests because free models may be rate-limited.
+6. Compares each prediction with the ground-truth label.
+7. Records errors without terminating the complete experiment.
+8. Adds a delay between API requests.
 9. Saves all experiment data to `results.csv`.
 10. Calculates accuracy for each model.
 
+A total of 45 classifications were performed:
+
+`15 prompts × 3 models = 45 classifications`
+
 ## Results
 
-| Model | Accuracy | Observation |
-|---|---:|---|
-| Qwen 3.8 27B Free | 0.00% | Requests were blocked by temporary rate limits during the experiment |
-| GLM 5.2 Free | 13.33% | Some classifications succeeded, while several requests were rate-limited or produced responses that normalized to unknown |
-| Ling 3.0 Flash Sante Free | 0.00% | Requests completed, but responses did not produce usable category text and were normalized to unknown |
+| Model | Correct | Total | Accuracy |
+|---|---:|---:|---:|
+| Gemini 2.5 Flash Lite | 15 | 15 | 100% |
+| GPT-4.1 Nano | 13 | 15 | 86.67% |
+| Mistral Small 3.2 24B Instruct | 13 | 15 | 86.67% |
 
 Accuracy was calculated as:
 
-`Accuracy = (Correct classifications / 15) × 100`
+`Accuracy = (Correct classifications / Total prompts) × 100`
 
-API errors were therefore not counted as correct classifications.
+In this experiment, Gemini 2.5 Flash Lite classified all 15 prompts correctly.
 
-## Observations
+## Misclassified Prompts
 
-### Qwen
+### GPT-4.1 Nano
 
-During the experiment, the Qwen free endpoint was temporarily rate-limited. The program correctly caught these API errors and continued processing instead of terminating.
+**Prompt 8**
 
-Therefore, the reported 0% should not be interpreted as the model incorrectly classifying every prompt. The experiment did not receive usable classifications for those rate-limited requests.
+Prompt:
 
-### GLM
+`Why does my React useEffect run twice in development?`
 
-GLM returned some usable classifications. For example, it correctly classified a simple prompt and a coding prompt during the run.
+Ground truth:
 
-However, several requests were affected by free-provider rate limits, while some responses could not be normalized into one of the three expected category words.
+`coding`
 
-Under the experiment's accuracy calculation, GLM achieved 13.33%.
+Model prediction:
 
-### Ling
+`reasoning`
 
-The Ling endpoint returned responses without usable classification text under the tested configuration. These responses were normalized to `unknown`, resulting in 0% accuracy in this run.
+This prompt can be interpreted as reasoning because it asks "why" something happens, even though the subject is a programming problem.
+
+**Prompt 9**
+
+Prompt:
+
+`Write a SQL query to select all students whose marks are greater than 80.`
+
+Ground truth:
+
+`coding`
+
+Raw model response:
+
+`codeing`
+
+Normalized prediction:
+
+`unknown`
+
+The model intended to return the coding category but misspelled `coding` as `codeing`. Since the normalization function only accepts the expected category words, the response was recorded as `unknown`.
+
+### Mistral Small 3.2 24B Instruct
+
+**Prompt 2**
+
+Prompt:
+
+`Who invented the telephone?`
+
+Ground truth:
+
+`simple`
+
+Model prediction:
+
+`reasoning`
+
+The model classified this factual question as reasoning instead of simple.
+
+**Prompt 8**
+
+Prompt:
+
+`Why does my React useEffect run twice in development?`
+
+Ground truth:
+
+`coding`
+
+Model prediction:
+
+`reasoning`
+
+Like GPT-4.1 Nano, Mistral interpreted the explanatory nature of the question as reasoning rather than coding.
+
+## Cost and Budget
+
+The task budget was limited to $0.50.
+
+OpenRouter usage after the experiment was:
+
+`$0.000250582`
+
+This is well below the $0.50 budget.
+
+The experiment used short prompts, a small output-token limit, and low-cost models to keep API usage minimal.
 
 ## Error Handling
 
-Free OpenRouter models can be temporarily unavailable or rate-limited.
+The program uses exception handling so that an API failure for one request does not terminate the entire experiment.
 
-The program uses exception handling so that one failed API request does not terminate the entire experiment. Errors are recorded in `results.csv` together with the corresponding model and prompt.
+If an API request fails:
 
-A delay is also added between API requests to reduce rapid requests to free endpoints.
+- The error is recorded.
+- The prediction is treated appropriately.
+- The program continues with the remaining prompts.
+
+This was especially useful during initial testing of free OpenRouter endpoints, where rate limits and provider restrictions were encountered.
 
 ## Normalization
 
@@ -106,22 +178,34 @@ Model responses are converted to lowercase and checked for the expected category
 - `coding`
 - `reasoning`
 
-For example:
+Examples:
 
-- `Coding.` becomes `coding`
-- `This is coding` becomes `coding`
-- A response without any valid category becomes `unknown`
+- `Coding.` → `coding`
+- `This is coding` → `coding`
+- A response without a valid category → `unknown`
+
+This makes the evaluation more robust to small formatting differences while still requiring one of the expected category names.
+
+## Observations
+
+Gemini 2.5 Flash Lite achieved 100% accuracy in this experiment.
+
+GPT-4.1 Nano achieved 86.67%. One prompt was classified as reasoning instead of coding, while another response contained the misspelling `codeing`, which was normalized to `unknown`.
+
+Mistral Small 3.2 24B Instruct achieved 86.67%. It misclassified one simple factual question and one coding-related explanatory question as reasoning.
+
+Prompt 8 was particularly interesting because both GPT-4.1 Nano and Mistral classified it as reasoning. This shows that prompts containing programming topics can still be interpreted differently when they ask for an explanation rather than explicitly asking for code.
 
 ## Improvements
 
 The experiment could be improved by:
 
-1. Adding retry logic with exponential backoff for HTTP 429 rate-limit errors.
-2. Increasing the delay between free-model requests.
-3. Repeating the experiment at different times to reduce temporary provider congestion.
-4. Testing additional free models when provider availability changes.
-5. Separately reporting classification accuracy on successful responses and API availability/failure rate.
-6. Testing different prompt wording and output constraints.
+1. Adding retry logic with exponential backoff for temporary API failures.
+2. Making category definitions more explicit in the system prompt.
+3. Improving normalization to optionally handle minor spelling mistakes such as `codeing`.
+4. Repeating the experiment multiple times to test consistency.
+5. Using a larger and more diverse prompt dataset.
+6. Separately measuring API reliability and classification accuracy.
 
 ## Project Files
 
@@ -139,3 +223,26 @@ Install the required packages:
 
 ```bash
 pip install -r requirements.txt
+```
+
+Set the OpenRouter API key as an environment variable.
+
+Example in PowerShell:
+
+```powershell
+$env:OPENROUTER_API_KEY="YOUR_API_KEY"
+```
+
+The actual API key is not stored in the source code or committed to GitHub.
+
+Run the experiment:
+
+```bash
+python main.py
+```
+
+The program will generate the experiment results in:
+
+```text
+results.csv
+```
