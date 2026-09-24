@@ -1,0 +1,77 @@
+[
+  {
+    "id": 1,
+    "prompt": "What is the capital of Japan?",
+    "label": "simple"
+  },
+  {
+    "id": 2,
+    "prompt": "Who invented the telephone?",
+    "label": "simple"
+  },
+  {
+    "id": 3,
+    "prompt": "What is the largest planet in our solar system?",
+    "label": "simple"
+  },
+  {
+    "id": 4,
+    "prompt": "How many days are there in a leap year?",
+    "label": "simple"
+  },
+  {
+    "id": 5,
+    "prompt": "What does CPU stand for?",
+    "label": "simple"
+  },
+  {
+    "id": 6,
+    "prompt": "Write a Python function to check whether a number is even or odd.",
+    "label": "coding"
+  },
+  {
+    "id": 7,
+    "prompt": "Write JavaScript code to reverse a string.",
+    "label": "coding"
+  },
+  {
+    "id": 8,
+    "prompt": "Why does my React useEffect run twice in development?",
+    "label": "coding"
+  },
+  {
+    "id": 9,
+    "prompt": "Write a SQL query to select all students whose marks are greater than 80.",
+    "label": "coding"
+  },
+  {
+    "id": 10,
+    "prompt": "Fix this Python code: for i in range(5) print(i)",
+    "label": "coding"
+  },
+  {
+    "id": 11,
+    "prompt": "Should a startup use microservices or a monolith? Explain the trade-offs.",
+    "label": "reasoning"
+  },
+  {
+    "id": 12,
+    "prompt": "A shop gives a 20% discount on a 1500 rupee product. What is the final price? Explain your calculation.",
+    "label": "reasoning"
+  },
+  {
+    "id": 13,
+    "prompt": "If all programmers are problem solvers and Ravi is a programmer, what can we conclude about Ravi? Explain.",
+    "label": "reasoning"
+  },
+  {
+    "id": 14,
+    "prompt": "Which is better for a small project, MySQL or MongoDB? Explain your reasoning.",
+    "label": "reasoning"
+  },
+  {
+    "id": 15,
+    "prompt": "A train travels 120 km in 2 hours. At the same speed, how far will it travel in 5 hours? Explain.",
+    "label": "reasoning"
+  }
+]
